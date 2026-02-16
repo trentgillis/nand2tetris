@@ -416,15 +416,7 @@ func (ce *compilationEngine) compileTerm() {
 	} else if len(ce.jt.lineTokens) > 0 && (ce.jt.lineTokens[0] == "." || ce.jt.lineTokens[0] == "(") {
 		ce.compileSubroutineCall()
 	} else if len(ce.jt.lineTokens) > 0 && ce.jt.lineTokens[0] == "[" {
-		identifier, _ := ce.lookupVar(ce.jt.currToken)
-		ce.jt.advance()
-		ce.process("[")
-		ce.compileExpression()
-		ce.process("]")
-		ce.vw.writePush(segment(identifier.kind), identifier.index)
-		ce.vw.writeArithmetic(ADD)
-		ce.vw.writePop(POINTER, 1)
-		ce.vw.writePush(THAT, 0)
+		ce.compileArrayAccess()
 	} else {
 		switch tt := tokenType(ce.jt.currToken); tt {
 		case TOKEN_INT_CONST:
@@ -439,6 +431,18 @@ func (ce *compilationEngine) compileTerm() {
 		}
 		ce.jt.advance()
 	}
+}
+
+func (ce *compilationEngine) compileArrayAccess() {
+	identifier, _ := ce.lookupVar(ce.jt.currToken)
+	ce.jt.advance()
+	ce.process("[")
+	ce.compileExpression()
+	ce.process("]")
+	ce.vw.writePush(segment(identifier.kind), identifier.index)
+	ce.vw.writeArithmetic(ADD)
+	ce.vw.writePop(POINTER, 1)
+	ce.vw.writePush(THAT, 0)
 }
 
 func (ce *compilationEngine) compileKeyword() {
