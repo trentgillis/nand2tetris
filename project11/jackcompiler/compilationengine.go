@@ -248,10 +248,10 @@ func (ce *compilationEngine) compileLetStatement() {
 	ce.jt.advance()
 	if ce.jt.currToken == "[" {
 		isLetArr = true
-		ce.vw.writePush(segment(identifier.kind), identifier.index)
 		ce.process("[")
 		ce.compileExpression()
 		ce.process("]")
+		ce.vw.writePush(segment(identifier.kind), identifier.index)
 		ce.vw.writeArithmetic(ADD)
 	}
 	ce.process("=")
@@ -416,10 +416,15 @@ func (ce *compilationEngine) compileTerm() {
 	} else if len(ce.jt.lineTokens) > 0 && (ce.jt.lineTokens[0] == "." || ce.jt.lineTokens[0] == "(") {
 		ce.compileSubroutineCall()
 	} else if len(ce.jt.lineTokens) > 0 && ce.jt.lineTokens[0] == "[" {
-		ce.compileCurrentToken()
+		identifier, _ := ce.lookupVar(ce.jt.currToken)
+		ce.jt.advance()
 		ce.process("[")
 		ce.compileExpression()
 		ce.process("]")
+		ce.vw.writePush(segment(identifier.kind), identifier.index)
+		ce.vw.writeArithmetic(ADD)
+		ce.vw.writePop(POINTER, 1)
+		ce.vw.writePush(THAT, 0)
 	} else {
 		switch tt := tokenType(ce.jt.currToken); tt {
 		case TOKEN_INT_CONST:
@@ -524,9 +529,4 @@ func (ce *compilationEngine) lookupVar(varName string) (stEntry, bool) {
 	}
 
 	return varEntry, ok
-}
-
-func (ce *compilationEngine) compileCurrentToken() {
-	ce.jt.printTokenXML()
-	ce.jt.advance()
 }
