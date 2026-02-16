@@ -30,7 +30,7 @@ func newCompilationEngine(inf *os.File, outf *os.File) compilationEngine {
 
 func (ce *compilationEngine) process(token string) {
 	if ce.jt.currToken != token {
-		log.Fatalf("Syntax error at token: %s. Expected: %s\n", ce.jt.currToken, token)
+		log.Fatalf("%s - Syntax error at token: %s. Expected: %s\n", ce.outf.Name(), ce.jt.currToken, token)
 	}
 	ce.jt.advance()
 }
@@ -101,8 +101,7 @@ func (ce *compilationEngine) compileSubroutine() {
 
 	switch ce.jt.currToken {
 	case "constructor":
-		// TODO: compile constructors
-		ce.process("constructor")
+		ce.compileConstructor()
 	case "method":
 		ce.compileMethod()
 	case "function":
@@ -112,10 +111,16 @@ func (ce *compilationEngine) compileSubroutine() {
 	}
 }
 
+func (ce *compilationEngine) compileConstructor() {
+	ce.process("constructor")
+	subroutineName := ce.compileSubroutineDeclaration()
+	ce.compileSubroutineBody(subroutineName, "constructor")
+}
+
 func (ce *compilationEngine) compileFunction() {
 	ce.process("function")
 	subroutineName := ce.compileSubroutineDeclaration()
-	ce.compileSubroutineBody(subroutineName, false)
+	ce.compileSubroutineBody(subroutineName, "function")
 }
 
 func (ce *compilationEngine) compileMethod() {
@@ -129,7 +134,7 @@ func (ce *compilationEngine) compileMethod() {
 	ce.routineSt.argCount += 1
 
 	subroutineName := ce.compileSubroutineDeclaration()
-	ce.compileSubroutineBody(subroutineName, true)
+	ce.compileSubroutineBody(subroutineName, "method")
 }
 
 // Compiles generic subroutine declaration code that is shared by methods, functions and constructors and is
@@ -167,7 +172,7 @@ func (ce *compilationEngine) compileParameterList() {
 
 // Performs syntax analysis and outputs XML for subroutine bodies
 // '{' varDec* statements '}'
-func (ce *compilationEngine) compileSubroutineBody(subroutineName string, isMethod bool) {
+func (ce *compilationEngine) compileSubroutineBody(subroutineName string, subroutineType string) {
 	nVars := 0
 	ce.process("{")
 	for ce.jt.currToken == "var" {
@@ -175,7 +180,12 @@ func (ce *compilationEngine) compileSubroutineBody(subroutineName string, isMeth
 	}
 
 	ce.vw.writeFunction(ce.className, subroutineName, nVars)
-	if isMethod {
+	if subroutineType == "constructor" {
+		ce.vw.writePush(CONSTANT, ce.classSt.fieldCount)
+		ce.vw.writeCall("Memory", "alloc", 1)
+		ce.vw.writePop(POINTER, 0)
+	}
+	if subroutineName == "method" {
 		ce.vw.writePush(ARGUMENT, 0)
 		ce.vw.writePop(POINTER, 0)
 	}
@@ -233,7 +243,7 @@ func (ce *compilationEngine) compileStatements() {
 // 'let' varName ('[' expression ']')? '=' expression ';'
 func (ce *compilationEngine) compileLetStatement() {
 	ce.process("let")
-	varEntry := ce.lookupVar(ce.jt.currToken)
+	varEntry, _ := ce.lookupVar(ce.jt.currToken)
 	ce.jt.advance()
 	if ce.jt.currToken == "[" {
 		ce.process("[")
@@ -308,10 +318,11 @@ func (ce *compilationEngine) compileDoStatement() {
 // 'return' expression? ';'
 func (ce *compilationEngine) compileReturnStatement() {
 	ce.process("return")
-	if ce.jt.currToken != ";" {
-		ce.compileExpression()
-	} else {
+	fmt.Printf("%s - %s\n", ce.outf.Name(), ce.jt.currToken)
+	if ce.jt.currToken == ";" {
 		ce.vw.writePush(CONSTANT, 0)
+	} else {
+		ce.compileExpression()
 	}
 	ce.vw.writeReturn()
 	ce.process(";")
@@ -321,17 +332,25 @@ func (ce *compilationEngine) compileReturnStatement() {
 // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
 func (ce *compilationEngine) compileSubroutineCall(isDo bool) {
 	var arg1, arg2 string
-	var nVars int
+	nVars := 0
 
 	arg1 = ce.jt.currToken
 	ce.jt.advance()
 	if ce.jt.currToken == "." {
 		ce.process(".")
+
+		classEntry, ok := ce.lookupVar(arg1)
+		if ok {
+			ce.vw.writePush(segment(classEntry.kind), classEntry.index)
+			arg1 = classEntry.dataType
+			nVars += 1
+		}
+
 		arg2 = ce.jt.currToken
 		ce.jt.advance()
 	}
 	ce.process("(")
-	nVars = ce.compileExpressionList()
+	nVars += ce.compileExpressionList()
 	ce.process(")")
 
 	ce.vw.writeCall(arg1, arg2, nVars)
@@ -386,6 +405,7 @@ func (ce *compilationEngine) compileTerm() {
 	} else if len(ce.jt.lineTokens) > 0 && (ce.jt.lineTokens[0] == "." || ce.jt.lineTokens[0] == "(") {
 		// Handle subroutine call case with lookahead
 		ce.compileSubroutineCall(false)
+		fmt.Printf("this is working i guess\n")
 	} else if len(ce.jt.lineTokens) > 0 && ce.jt.lineTokens[0] == "[" {
 		// TODO: compile array access
 		ce.compileCurrentToken()
@@ -471,13 +491,13 @@ func (ce *compilationEngine) compileType() {
 	}
 }
 
-func (ce *compilationEngine) lookupVar(varName string) stEntry {
+func (ce *compilationEngine) lookupVar(varName string) (stEntry, bool) {
 	varEntry, ok := ce.routineSt.table[varName]
 	if !ok {
-		varEntry = ce.classSt.table[varName]
+		varEntry, ok = ce.classSt.table[varName]
 	}
 
-	return varEntry
+	return varEntry, ok
 }
 
 func (ce *compilationEngine) compileCurrentToken() {
