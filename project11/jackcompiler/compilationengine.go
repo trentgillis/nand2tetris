@@ -450,7 +450,7 @@ func (ce *compilationEngine) compileKeyword() {
 	case "true":
 		ce.vw.writePush(CONSTANT, 0)
 		ce.vw.writeArithmetic(NOT)
-	case "null,", "false":
+	case "null", "false":
 		ce.vw.writePush(CONSTANT, 0)
 	case "this":
 		ce.vw.writePush(POINTER, 0)
@@ -467,6 +467,8 @@ func (ce *compilationEngine) compileIntConstant() {
 
 func (ce *compilationEngine) compileStringLiteral() {
 	str := ce.jt.currToken[1 : len(ce.jt.currToken)-1]
+	fmt.Printf("token - %s | str - %s\n", ce.jt.currToken, str)
+	fmt.Printf("len(token) - %d | len(str) - %d\n", len(ce.jt.currToken), len(str))
 	ce.vw.writePush(CONSTANT, len(str))
 	ce.vw.writeCall("String", "new", 1)
 	for _, c := range str {

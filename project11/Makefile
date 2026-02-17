@@ -17,6 +17,7 @@ clean:
 
 test:
 	./tools/TextComparer.sh ./jack/Average/Main.vm ./jack/Average/output/Main.vm
+	./tools/TextComparer.sh ./jack/ComplexArrays/Main.vm ./jack/ComplexArrays/output/Main.vm
 	./tools/TextComparer.sh ./jack/ConvertToBin/Main.vm ./jack/ConvertToBin/output/Main.vm
 	./tools/TextComparer.sh ./jack/Pong/Main.vm ./jack/Pong/output/Main.vm
 	./tools/TextComparer.sh ./jack/Pong/Ball.vm ./jack/Pong/output/Ball.vm
@@ -29,7 +30,7 @@ test:
 
 run: build
 	./jackc ./jack/Average
-	# ./jackc ./jack/ComplexArrays
+	./jackc ./jack/ComplexArrays
 	./jackc ./jack/ConvertToBin
 	./jackc ./jack/Pong
 	./jackc ./jack/Seven

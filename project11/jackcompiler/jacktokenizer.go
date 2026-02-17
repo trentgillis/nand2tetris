@@ -91,21 +91,6 @@ func (jt *jackTokenizer) advance() {
 	}
 }
 
-func (jt *jackTokenizer) printTokenXML() {
-	token := jt.currToken
-	tType := tokenType(jt.currToken)
-
-	if tType == TOKEN_STRING_CONST {
-		token = token[1 : len(token)-1]
-	}
-
-	if tType == TOKEN_SYMBOL {
-		token = JACK_SYMBOLS[token]
-	}
-
-	fmt.Fprintf(jt.outf, "<%s> %s </%s>\n", tType, token, tType)
-}
-
 func tokenType(token string) string {
 	if _, ok := JACK_KEYWORDS[token]; ok {
 		return TOKEN_KEYWORD
@@ -134,7 +119,11 @@ func (jt *jackTokenizer) nextToken() {
 	// including any spaces in the string
 	if strings.HasPrefix(jt.currToken, "\"") {
 		for !strings.HasSuffix(jt.currToken, "\"") {
-			jt.currToken = fmt.Sprintf("%s %s", jt.currToken, jt.lineTokens[skip])
+			if len(jt.lineTokens) > skip && tokenType(jt.lineTokens[skip]) == TOKEN_SYMBOL {
+				jt.currToken = fmt.Sprintf("%s%s", jt.currToken, jt.lineTokens[skip])
+			} else {
+				jt.currToken = fmt.Sprintf("%s %s", jt.currToken, jt.lineTokens[skip])
+			}
 			skip += 1
 		}
 	}
