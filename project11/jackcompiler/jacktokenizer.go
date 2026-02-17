@@ -17,52 +17,52 @@ const (
 	TOKEN_STRING_CONST = "stringConstant"
 )
 
-var LINE_REGEX = regexp.MustCompile(`({|}|\(|\)|\[|\]|\.|,|;|\+|-|\*|/|&|\||<|>|=|~)`)
-var INT_REGEX = regexp.MustCompile(`^[0-9]+`)
+var lineRegex = regexp.MustCompile(`({|}|\(|\)|\[|\]|\.|,|;|\+|-|\*|/|&|\||<|>|=|~)`)
+var intRegex = regexp.MustCompile(`^[0-9]+`)
 
-var JACK_SYMBOLS = map[string]string{
-	"{": "{",
-	"}": "}",
-	"(": "(",
-	")": ")",
-	"[": "[",
-	"]": "]",
-	".": ".",
-	",": ",",
-	";": ";",
-	"+": "+",
-	"-": "-",
-	"*": "*",
-	"/": "/",
-	"&": "&amp;",
-	"|": "|",
-	"<": "&lt;",
-	">": "&gt;",
-	"=": "=",
-	"~": "~",
+var jackSymbols = map[string]bool{
+	"{": true,
+	"}": true,
+	"(": true,
+	")": true,
+	"[": true,
+	"]": true,
+	".": true,
+	",": true,
+	";": true,
+	"+": true,
+	"-": true,
+	"*": true,
+	"/": true,
+	"&": true,
+	"|": true,
+	"<": true,
+	">": true,
+	"=": true,
+	"~": true,
 }
-var JACK_KEYWORDS = map[string]string{
-	"class":       "class",
-	"method":      "method",
-	"function":    "function",
-	"constructor": "constructor",
-	"int":         "int",
-	"boolean":     "boolean",
-	"char":        "char",
-	"void":        "void",
-	"var":         "var",
-	"static":      "static",
-	"field":       "field",
-	"let":         "let",
-	"do":          "do",
-	"if":          "if",
-	"else":        "else",
-	"while":       "while",
-	"return":      "return",
-	"true":        "true",
-	"false":       "false",
-	"null":        "null",
-	"this":        "this",
+var jackKeywords = map[string]bool{
+	"class":       true,
+	"method":      true,
+	"function":    true,
+	"constructor": true,
+	"int":         true,
+	"boolean":     true,
+	"char":        true,
+	"void":        true,
+	"var":         true,
+	"static":      true,
+	"field":       true,
+	"let":         true,
+	"do":          true,
+	"if":          true,
+	"else":        true,
+	"while":       true,
+	"return":      true,
+	"true":        true,
+	"false":       true,
+	"null":        true,
+	"this":        true,
 }
 
 type jackTokenizer struct {
@@ -92,22 +92,18 @@ func (jt *jackTokenizer) advance() {
 }
 
 func tokenType(token string) string {
-	if _, ok := JACK_KEYWORDS[token]; ok {
+	if _, ok := jackKeywords[token]; ok {
 		return TOKEN_KEYWORD
 	}
-
-	if _, ok := JACK_SYMBOLS[token]; ok {
+	if _, ok := jackSymbols[token]; ok {
 		return TOKEN_SYMBOL
 	}
-
 	if strings.HasPrefix(token, "\"") && strings.HasSuffix(token, "\"") {
 		return TOKEN_STRING_CONST
 	}
-
-	if INT_REGEX.MatchString(token) {
+	if intRegex.MatchString(token) {
 		return TOKEN_INT_CONST
 	}
-
 	return TOKEN_IDENTIFIER
 }
 
@@ -174,13 +170,11 @@ func (jt *jackTokenizer) nextLine() {
 
 func getLineTokens(line string) []string {
 	lineTokens := []string{}
-
-	for l := range strings.SplitSeq(LINE_REGEX.ReplaceAllString(line, " $1 "), " ") {
+	for l := range strings.SplitSeq(lineRegex.ReplaceAllString(line, " $1 "), " ") {
 		if len(l) > 0 {
 			lineTokens = append(lineTokens, strings.TrimSpace(l))
 		}
 	}
-
 	return lineTokens
 }
 

@@ -155,7 +155,6 @@ func (ce *compilationEngine) compileSubroutineDeclaration() string {
 // ((type varName) (',' varName)*)?
 func (ce *compilationEngine) compileParameterList() {
 	stEntry := stEntry{kind: "argument", index: ce.routineSt.argCount}
-
 	for ce.jt.currToken != ")" {
 		stEntry.dataType = ce.jt.currToken
 		ce.jt.advance()
@@ -167,7 +166,7 @@ func (ce *compilationEngine) compileParameterList() {
 			stEntry.index += 1
 		}
 	}
-
+	ce.routineSt.argCount = stEntry.index + 1
 }
 
 // Performs syntax analysis and outputs XML for subroutine bodies
@@ -199,7 +198,7 @@ func (ce *compilationEngine) compileSubroutineBody(subroutineName string, subrou
 func (ce *compilationEngine) compileVarDec() int {
 	nVars := 1
 	stEntry := stEntry{kind: "local", index: ce.routineSt.localCount}
-	ce.jt.advance()
+	ce.process("var")
 	stEntry.dataType = ce.jt.currToken
 	ce.jt.advance()
 	stEntry.name = ce.jt.currToken
@@ -233,8 +232,6 @@ func (ce *compilationEngine) compileStatements() {
 			ce.compileDoStatement()
 		case "return":
 			ce.compileReturnStatement()
-		default:
-			log.Fatalf("Syntax error at token %s. Expected: let, if, while, do or return", ce.jt.currToken)
 		}
 	}
 }
@@ -262,7 +259,7 @@ func (ce *compilationEngine) compileLetStatement() {
 		ce.vw.writePush(TEMP, 0)
 		ce.vw.writePop(THAT, 0)
 	} else {
-		ce.vw.writePop(identifier.kind, identifier.index)
+		ce.vw.writePop(segment(identifier.kind), identifier.index)
 	}
 	ce.process(";")
 }
@@ -531,6 +528,5 @@ func (ce *compilationEngine) lookupVar(varName string) (stEntry, bool) {
 	if !ok {
 		varEntry, ok = ce.classSt.table[varName]
 	}
-
 	return varEntry, ok
 }

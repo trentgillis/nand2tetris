@@ -1,7 +1,6 @@
 package jackcompiler
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -67,7 +66,7 @@ func getJackPathsFromDir(dirPath string) []string {
 	jackFilePaths := []string{}
 	for _, entry := range entries {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jack") {
-			jackFilePaths = append(jackFilePaths, fmt.Sprintf("%s/%s", dirPath, entry.Name()))
+			jackFilePaths = append(jackFilePaths, filepath.Join(dirPath, entry.Name()))
 		}
 	}
 	if len(jackFilePaths) == 0 {

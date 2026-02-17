@@ -8,28 +8,28 @@ import (
 type segment string
 
 const (
-	ARGUMENT = "argument"
-	LOCAL    = "local"
-	STATIC   = "static"
-	THIS     = "this"
-	THAT     = "that"
-	POINTER  = "pointer"
-	TEMP     = "temp"
-	CONSTANT = "constant"
+	ARGUMENT segment = "argument"
+	LOCAL    segment = "local"
+	STATIC   segment = "static"
+	THIS     segment = "this"
+	THAT     segment = "that"
+	POINTER  segment = "pointer"
+	TEMP     segment = "temp"
+	CONSTANT segment = "constant"
 )
 
 type arithmeticCommand string
 
 const (
-	ADD = "add"
-	SUB = "sub"
-	NEG = "neg"
-	EQ  = "eq"
-	GT  = "gt"
-	LT  = "lt"
-	AND = "and"
-	OR  = "or"
-	NOT = "not"
+	ADD arithmeticCommand = "add"
+	SUB arithmeticCommand = "sub"
+	NEG arithmeticCommand = "neg"
+	EQ  arithmeticCommand = "eq"
+	GT  arithmeticCommand = "gt"
+	LT  arithmeticCommand = "lt"
+	AND arithmeticCommand = "and"
+	OR  arithmeticCommand = "or"
+	NOT arithmeticCommand = "not"
 )
 
 type vmWriter struct {
@@ -46,7 +46,7 @@ func (vw *vmWriter) writePush(s segment, i int) {
 	fmt.Fprintf(vw.outf, "push %v %d\n", s, i)
 }
 
-func (vw *vmWriter) writePop(s string, i int) {
+func (vw *vmWriter) writePop(s segment, i int) {
 	fmt.Fprintf(vw.outf, "pop %v %d\n", s, i)
 }
 
