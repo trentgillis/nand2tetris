@@ -76,13 +76,13 @@ func (ce *compilationEngine) compileClassVarDec() {
 	ce.jt.advance()
 	stEntry.name = ce.jt.currToken
 	ce.jt.advance()
-	ce.classSt.table[stEntry.name] = stEntry
+	ce.classSt.Add(stEntry)
 	for ce.jt.currToken == "," {
 		ce.process(",")
 		stEntry.name = ce.jt.currToken
 		stEntry.index += 1
 		ce.jt.advance()
-		ce.classSt.table[stEntry.name] = stEntry
+		ce.classSt.Add(stEntry)
 	}
 	ce.process(";")
 
@@ -130,12 +130,12 @@ func (ce *compilationEngine) compileFunction() {
 // Compiles and outputs vm code for a method subroutine
 func (ce *compilationEngine) compileMethod() {
 	ce.process("method")
-	ce.routineSt.table["this"] = stEntry{
+	ce.routineSt.Add(stEntry{
 		name:     "this",
 		kind:     "argument",
 		dataType: ce.jt.currToken,
 		index:    0,
-	}
+	})
 	ce.routineSt.argCount += 1
 
 	subroutineName := ce.compileSubroutineDeclaration()
@@ -165,7 +165,7 @@ func (ce *compilationEngine) compileParameterList() {
 		ce.jt.advance()
 		stEntry.name = ce.jt.currToken
 		ce.jt.advance()
-		ce.routineSt.table[stEntry.name] = stEntry
+		ce.routineSt.Add(stEntry)
 		if ce.jt.currToken == "," {
 			ce.process(",")
 			stEntry.index += 1
@@ -208,14 +208,14 @@ func (ce *compilationEngine) compileVarDec() int {
 	ce.jt.advance()
 	stEntry.name = ce.jt.currToken
 	ce.jt.advance()
-	ce.routineSt.table[stEntry.name] = stEntry
+	ce.routineSt.Add(stEntry)
 	for ce.jt.currToken == "," {
 		nVars += 1
 		ce.process(",")
 		stEntry.index += 1
 		stEntry.name = ce.jt.currToken
 		ce.jt.advance()
-		ce.routineSt.table[stEntry.name] = stEntry
+		ce.routineSt.Add(stEntry)
 	}
 	ce.process(";")
 	ce.routineSt.localCount = stEntry.index + 1
@@ -539,9 +539,9 @@ func (ce *compilationEngine) compileType() {
 // Performs a variable lookup by looking at the routine and class symbol tables and returns
 // the variables symbol table entry and whether or not it was found
 func (ce *compilationEngine) lookupVar(varName string) (stEntry, bool) {
-	varEntry, ok := ce.routineSt.table[varName]
+	entry, ok := ce.routineSt.Lookup(varName)
 	if !ok {
-		varEntry, ok = ce.classSt.table[varName]
+		entry, ok = ce.classSt.Lookup(varName)
 	}
-	return varEntry, ok
+	return entry, ok
 }

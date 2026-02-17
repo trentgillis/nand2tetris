@@ -3,7 +3,7 @@ package jackcompiler
 type stEntry struct {
 	name     string
 	dataType string
-	kind     string
+	kind     segment
 	index    int
 }
 
@@ -25,4 +25,13 @@ func newSymbolTable() symbolTable {
 		argCount:    0,
 		localCount:  0,
 	}
+}
+
+func (st *symbolTable) Add(entry stEntry) {
+	st.table[entry.name] = entry
+}
+
+func (st *symbolTable) Lookup(name string) (stEntry, bool) {
+	entry, ok := st.table[name]
+	return entry, ok
 }
