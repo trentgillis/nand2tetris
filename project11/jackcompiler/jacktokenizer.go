@@ -137,8 +137,12 @@ func (jt *jackTokenizer) nextLine() {
 	for jt.scanner.Scan() {
 		line := strings.TrimSpace(jt.scanner.Text())
 		// Remove single line comments
-		if idx := strings.Index(line, "//"); idx != -1 {
+		if idx := commentIndex(line); idx != -1 {
 			line = strings.TrimSpace(line[:idx])
+		}
+		// Handle /* ... */ comment syntax
+		if strings.HasPrefix(line, "/*") && strings.HasSuffix(line, "*/") {
+			continue
 		}
 		// Handle multi-line comments
 		if strings.HasPrefix(line, "/**") {
@@ -178,4 +182,16 @@ func getLineTokens(line string) []string {
 	}
 
 	return lineTokens
+}
+
+func commentIndex(line string) int {
+	inString := false
+	for i := 0; i < len(line); i++ {
+		if line[i] == '"' {
+			inString = !inString
+		} else if !inString && i+1 < len(line) && line[i] == '/' && line[i+1] == '/' {
+			return i
+		}
+	}
+	return -1
 }
