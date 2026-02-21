@@ -9,3 +9,5 @@ compile:
 	./tools/JackCompiler.sh ./test/MathTest
 	cp ./Memory.jack test/MemoryTest
 	./tools/JackCompiler.sh ./test/MemoryTest
+	cp ./String.jack test/StringTest
+	./tools/JackCompiler.sh ./test/StringTest
