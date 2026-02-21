@@ -52,7 +52,7 @@ pop pointer 1
 push that 0
 push argument 0
 lt
-push constant 3
+push constant 2
 add
 not
 if-goto WHILE_END0
@@ -106,16 +106,6 @@ pop local 1
 goto WHILE_EXP0
 label WHILE_END0
 push local 1
-push constant 0
-eq
-if-goto IF_TRUE1
-goto IF_FALSE1
-label IF_TRUE1
-push constant 1
-neg
-return
-label IF_FALSE1
-push local 1
 push argument 0
 add
 push constant 2
@@ -156,13 +146,13 @@ pop that 0
 push local 2
 push constant 0
 eq
-if-goto IF_TRUE2
-goto IF_FALSE2
-label IF_TRUE2
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
 push local 0
 pop static 1
-goto IF_END2
-label IF_FALSE2
+goto IF_END1
+label IF_FALSE1
 push local 2
 push constant 1
 add
@@ -173,7 +163,7 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-label IF_END2
+label IF_END1
 push local 1
 push constant 2
 add

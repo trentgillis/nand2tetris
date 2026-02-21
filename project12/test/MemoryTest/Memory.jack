@@ -41,18 +41,13 @@ class Memory {
         let prevSegment = 0;
         let currSegment = freeList;
 
-        while (ram[currSegment] < size + 3) {
+        while (ram[currSegment] < size + 2) {
             if (currSegment = 0) {
                 do Sys.error("Out of memory");
             }
             let prevSegment = currSegment;
             let currSegment = ram[currSegment + 1];
         }
-
-        if (currSegment = 0) {
-            return -1;
-        }
-
 
         let remainder = currSegment + size + 2;
         let ram[remainder] = ram[currSegment] - (size + 2);
