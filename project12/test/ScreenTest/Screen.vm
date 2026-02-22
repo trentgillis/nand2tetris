@@ -298,11 +298,7 @@ goto WHILE_EXP0
 label WHILE_END0
 push constant 0
 return
-function Screen.drawCircle 3
-push argument 2
-push argument 2
-call Math.multiply 2
-pop local 2
+function Screen.drawCircle 2
 push argument 2
 neg
 pop local 1
