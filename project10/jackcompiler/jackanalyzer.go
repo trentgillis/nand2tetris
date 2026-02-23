@@ -13,7 +13,7 @@ func Analyze(programPath string) {
 	jackPaths := getJackPaths(programPath)
 
 	for _, path := range jackPaths {
-		analyzeJackFile(path)
+		go analyzeJackFile(path)
 	}
 }
 
