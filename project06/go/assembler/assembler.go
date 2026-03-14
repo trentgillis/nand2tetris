@@ -15,7 +15,7 @@ type Assembler struct {
 	symtable SymbolTable
 }
 
-func newAssembler(f *os.File) *Assembler {
+func newAssembler(f *os.File) Assembler {
 	codegen := CodeGen{}
 	symtable := newSymbolTable()
 
@@ -24,7 +24,7 @@ func newAssembler(f *os.File) *Assembler {
 		log.Fatal(err)
 	}
 
-	return &Assembler{
+	return Assembler{
 		infile:   f,
 		outfile:  outfile,
 		codegen:  codegen,
