@@ -4,7 +4,7 @@ pub struct CliConfig {
 
 impl CliConfig {
     pub fn build(args: &[String]) -> Result<CliConfig, &'static str> {
-        if args.len() < 3 {
+        if args.len() < 2 {
             return Err("not enough arguments");
         }
 
