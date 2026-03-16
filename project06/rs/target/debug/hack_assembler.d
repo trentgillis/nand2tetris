@@ -1,1 +1,0 @@
-/Users/trent/dev/projects/nand2tetris/project06/rs/target/debug/hack_assembler: /Users/trent/dev/projects/nand2tetris/project06/rs/src/assembler/cli_config.rs /Users/trent/dev/projects/nand2tetris/project06/rs/src/assembler.rs /Users/trent/dev/projects/nand2tetris/project06/rs/src/lib.rs /Users/trent/dev/projects/nand2tetris/project06/rs/src/main.rs
