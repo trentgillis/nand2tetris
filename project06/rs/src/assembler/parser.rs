@@ -15,6 +15,14 @@ pub fn instruction_type(line: &str) -> InstructionType {
     }
 }
 
+pub fn symbol(line: &str) -> &str {
+    if instruction_type(line) == InstructionType::A {
+        line.strip_prefix("@").unwrap()
+    } else {
+        line.strip_prefix("(").unwrap().strip_suffix(")").unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod instruction_type {
@@ -36,6 +44,19 @@ mod tests {
         fn test_instruction_type_l_instruction() {
             let inst_type = instruction_type("(aaa)");
             assert_eq!(inst_type, InstructionType::L);
+        }
+    }
+    mod symbol {
+        use super::super::*;
+
+        #[test]
+        fn test_symbol_a_instruction() {
+            assert_eq!(symbol("@15"), "15");
+        }
+
+        #[test]
+        fn test_symbol_l_instruction() {
+            assert_eq!(symbol("(LOOP)"), "LOOP");
         }
     }
 }
