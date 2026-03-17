@@ -15,11 +15,17 @@ pub fn instruction_type(line: &str) -> InstructionType {
     }
 }
 
-pub fn symbol(line: &str) -> &str {
+pub fn symbol(line: &str) -> Result<&str, String> {
+    if instruction_type(line) == InstructionType::C {
+        return Err(format!(
+            "symbol() only callable on A or L instructions: {line}"
+        ));
+    }
+
     if instruction_type(line) == InstructionType::A {
-        line.strip_prefix("@").unwrap()
+        Ok(line.strip_prefix("@").unwrap())
     } else {
-        line.strip_prefix("(").unwrap().strip_suffix(")").unwrap()
+        Ok(line.strip_prefix("(").unwrap().strip_suffix(")").unwrap())
     }
 }
 
@@ -83,13 +89,11 @@ mod tests {
             let inst_type = instruction_type("@aaa");
             assert_eq!(inst_type, InstructionType::A);
         }
-
         #[test]
         fn test_instruction_type_c_instruction() {
             let inst_type = instruction_type("dest=comp;jump");
             assert_eq!(inst_type, InstructionType::C);
         }
-
         #[test]
         fn test_instruction_type_l_instruction() {
             let inst_type = instruction_type("(aaa)");
@@ -102,13 +106,20 @@ mod tests {
 
         #[test]
         fn test_symbol_a_instruction() {
-            assert_eq!(symbol("@15"), "15");
-            assert_eq!(symbol("@myvar"), "myvar");
+            let symbol = symbol("@myvar");
+            assert!(symbol.is_ok());
+            assert_eq!(symbol.unwrap(), "myvar");
         }
-
         #[test]
         fn test_symbol_l_instruction() {
-            assert_eq!(symbol("(LOOP)"), "LOOP");
+            let symbol = symbol("(LOOP)");
+            assert!(symbol.is_ok());
+            assert_eq!(symbol.unwrap(), "LOOP");
+        }
+        #[test]
+        fn test_symbol_c_instruction() {
+            let symbol = symbol("M=D;JEQ");
+            assert!(symbol.is_err());
         }
     }
 
