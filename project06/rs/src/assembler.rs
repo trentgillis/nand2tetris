@@ -5,6 +5,7 @@ use std::{
 };
 
 pub mod cli_config;
+mod code_gen;
 mod parser;
 
 pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
