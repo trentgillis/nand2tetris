@@ -36,6 +36,30 @@ pub fn dest(line: &str) -> Result<Option<&str>, String> {
     Ok(Some(parts[0]))
 }
 
+pub fn comp(line: &str) -> Result<&str, String> {
+    if instruction_type(line) != InstructionType::C {
+        return Err(format!("comp() only callable on C instructions: {line}"));
+    }
+
+    if !line.contains("=") && !line.contains(";") {
+        return Err(format!(
+            "comp() received invalid format for C instruction: {line}"
+        ));
+    }
+
+    let mut comp = line;
+    if comp.contains("=") {
+        let parts: Vec<&str> = comp.split("=").collect();
+        comp = parts[1];
+    }
+    if comp.contains(";") {
+        let parts: Vec<&str> = comp.split(";").collect();
+        comp = parts[0];
+    }
+
+    Ok(comp)
+}
+
 pub fn jump(line: &str) -> Result<Option<&str>, String> {
     if instruction_type(line) != InstructionType::C {
         return Err(format!("jump() only callable on C instructions: {line}"));
@@ -98,18 +122,49 @@ mod tests {
             assert!(dest.clone().unwrap().is_some());
             assert_eq!(dest.unwrap().unwrap(), "M");
         }
-
         #[test]
         fn test_dest_a_instruction() {
             let dest = dest("@myvar");
             assert!(dest.is_err());
         }
-
         #[test]
         fn test_dest_without_dest() {
             let dest = dest("0;JEQ");
             assert!(dest.is_ok());
             assert!(dest.unwrap().is_none());
+        }
+    }
+
+    mod comp {
+        use super::super::*;
+
+        #[test]
+        fn test_comp_with_dest_comp() {
+            let comp = comp("M=D");
+            assert!(comp.is_ok());
+            assert_eq!(comp.unwrap(), "D");
+        }
+        #[test]
+        fn test_comp_with_comp_jump() {
+            let comp = comp("D;JEQ");
+            assert!(comp.is_ok());
+            assert_eq!(comp.unwrap(), "D");
+        }
+        #[test]
+        fn test_comp_with_dest_comp_jump() {
+            let comp = comp("A=M;JEQ");
+            assert!(comp.is_ok());
+            assert_eq!(comp.unwrap(), "M");
+        }
+        #[test]
+        fn test_comp_a_instruction() {
+            let jump = comp("@myvar");
+            assert!(jump.is_err());
+        }
+        #[test]
+        fn test_comp_without_comp() {
+            let comp = comp("M");
+            assert!(comp.is_err());
         }
     }
 
@@ -123,13 +178,11 @@ mod tests {
             assert!(jump.clone().unwrap().is_some());
             assert_eq!(jump.unwrap().unwrap(), "JEQ");
         }
-
         #[test]
         fn test_jump_a_instruction() {
             let jump = jump("@myvar");
             assert!(jump.is_err());
         }
-
         #[test]
         fn test_jump_without_jump() {
             let jump = jump("M=D");
