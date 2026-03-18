@@ -38,8 +38,8 @@ impl<W: Write> Assembler<W> {
 
             match parser::instruction_type(&line) {
                 parser::InstructionType::A => self.assemble_a_instruction(&line)?,
-                parser::InstructionType::C => self.assemble_c_instruction(&line),
-                parser::InstructionType::L => self.assemble_l_instruction(&line),
+                parser::InstructionType::C => self.assemble_c_instruction(&line)?,
+                parser::InstructionType::L => self.assemble_l_instruction(&line)?,
             }
         }
 
@@ -54,12 +54,18 @@ impl<W: Write> Assembler<W> {
         Ok(())
     }
 
-    fn assemble_c_instruction(&mut self, line: &str) {
-        writeln!(self.output, "C_INSTRUCTION: {line}");
+    fn assemble_c_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
+        let dest = code_gen::dest(parser::dest(line)?);
+        let comp = code_gen::comp(parser::comp(line)?);
+        let jump = code_gen::jump(parser::jump(line)?);
+        writeln!(self.output, "111{}{}{}", comp, dest, jump)?;
+
+        Ok(())
     }
 
-    fn assemble_l_instruction(&mut self, line: &str) {
-        writeln!(self.output, "L_INSTRUCTION: {line}");
+    fn assemble_l_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
+        writeln!(self.output, "L_INSTRUCTION: {line}")?;
+        Ok(())
     }
 }
 
