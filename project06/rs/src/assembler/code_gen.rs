@@ -46,11 +46,28 @@ static JUMP_CODES: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
     ])
 });
 
-pub fn comp(comp: Option<&str>) -> &str {
-    match comp {
-        Some(jump) => COMP_CODES.get(jump).unwrap(),
-        None => "000",
+pub fn dest(dest: Option<&str>) -> String {
+    if dest.is_none() {
+        return String::from("000");
     }
+
+    let dest = dest.unwrap();
+    let mut dest_parts = Vec::from(["0", "0", "0"]);
+    if dest.contains("A") {
+        dest_parts[0] = "1";
+    }
+    if dest.contains("D") {
+        dest_parts[1] = "1";
+    }
+    if dest.contains("M") {
+        dest_parts[2] = "1";
+    }
+
+    dest_parts.join("")
+}
+
+pub fn comp(comp: &str) -> &str {
+    COMP_CODES.get(comp).unwrap()
 }
 
 pub fn jump(jump: Option<&str>) -> &str {
