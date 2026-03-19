@@ -31,15 +31,16 @@ impl<W: Write> Assembler<W> {
     fn assemble<R: BufRead>(&mut self, reader: R) -> Result<(), Box<dyn Error>> {
         for line in reader.lines() {
             let line = line?;
+            let line = line.trim();
 
             if line.starts_with("//") || line.is_empty() {
                 continue;
             }
 
-            match parser::instruction_type(&line) {
-                parser::InstructionType::A => self.assemble_a_instruction(&line)?,
-                parser::InstructionType::C => self.assemble_c_instruction(&line)?,
-                parser::InstructionType::L => self.assemble_l_instruction(&line)?,
+            match parser::instruction_type(line) {
+                parser::InstructionType::A => self.assemble_a_instruction(line)?,
+                parser::InstructionType::C => self.assemble_c_instruction(line)?,
+                parser::InstructionType::L => self.assemble_l_instruction(line)?,
             }
         }
 
