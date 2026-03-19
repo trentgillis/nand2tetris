@@ -71,4 +71,19 @@ impl<W: Write> Assembler<W> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use std::io::BufReader;
+
+    use super::*;
+
+    #[test]
+    fn test_assemble_no_lables() {
+        let input = b"@2\nD=A\n@3\nD=D+A\n@0\nM=D";
+        let expected = "0000000000000010\n1110110000010000\n0000000000000011\n1110000010010000\n0000000000000000\n1110001100001000\n";
+
+        let mut assembler = Assembler::new(Vec::new());
+        assembler.assemble(BufReader::new(&input[..])).unwrap();
+        let output = String::from_utf8(assembler.output).unwrap();
+        assert_eq!(output, expected);
+    }
+}
