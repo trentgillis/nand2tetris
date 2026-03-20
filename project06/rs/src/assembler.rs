@@ -7,6 +7,7 @@ use std::{
 pub mod cli_config;
 mod code_gen;
 mod parser;
+mod symbol_table;
 
 pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     let asm_file = fs::File::open(&cfg.file_name)?;
@@ -20,12 +21,16 @@ pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
 }
 
 struct Assembler<W: Write> {
+    symbol_table: symbol_table::SymbolTable,
     output: W,
 }
 
 impl<W: Write> Assembler<W> {
     fn new(output: W) -> Self {
-        Assembler { output }
+        Assembler {
+            symbol_table: symbol_table::SymbolTable::new(),
+            output,
+        }
     }
 
     fn assemble<R: BufRead>(&mut self, reader: R) -> Result<(), Box<dyn Error>> {
@@ -66,6 +71,7 @@ impl<W: Write> Assembler<W> {
 
     fn assemble_l_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
         writeln!(self.output, "L_INSTRUCTION: {line}")?;
+
         Ok(())
     }
 }
