@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fs,
-    io::{self, BufRead, Write},
+    io::{self, BufRead, Seek, Write},
 };
 
 use crate::assembler::parser::symbol;
@@ -12,11 +12,12 @@ mod parser;
 mod symbol_table;
 
 pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
-    let asm_file = fs::File::open(&cfg.file_name)?;
+    let mut asm_file = fs::File::open(&cfg.file_name)?;
     let hack_file = fs::File::create(cfg.file_name.replacen(".asm", ".hack", 1))?;
     let mut assembler = Assembler::new(hack_file);
 
     assembler.populate_labels(io::BufReader::new(&asm_file))?;
+    asm_file.seek(io::SeekFrom::Start(0))?;
     assembler.assemble(io::BufReader::new(&asm_file))?;
 
     Ok(())
@@ -50,7 +51,7 @@ impl<W: Write> Assembler<W> {
             match parser::instruction_type(line) {
                 parser::InstructionType::A => self.assemble_a_instruction(line)?,
                 parser::InstructionType::C => self.assemble_c_instruction(line)?,
-                parser::InstructionType::L => self.assemble_l_instruction(line)?,
+                parser::InstructionType::L => {}
             }
         }
 
@@ -61,6 +62,7 @@ impl<W: Write> Assembler<W> {
     where
         R: BufRead,
     {
+        let mut line_number = 0;
         for line in reader.lines() {
             let line = line?;
             let line = line.trim();
@@ -69,9 +71,14 @@ impl<W: Write> Assembler<W> {
                 continue;
             }
 
-            if parser::instruction_type(line) == parser::InstructionType::L {
-                let label = symbol(line)?;
-                self.symbol_table.insert(label);
+            match parser::instruction_type(line) {
+                parser::InstructionType::L => {
+                    let label = symbol(line)?;
+                    self.symbol_table
+                        .entries
+                        .insert(String::from(label), line_number);
+                }
+                _ => line_number += 1,
             }
         }
 
@@ -87,8 +94,8 @@ impl<W: Write> Assembler<W> {
             *self.symbol_table.get(symbol_str).unwrap()
         });
 
-        let binary = format!("0{:015b}", symbol_num);
-        writeln!(self.output, "{}", binary)?;
+        let code = format!("0{:015b}", symbol_num);
+        writeln!(self.output, "{}", code)?;
 
         Ok(())
     }
@@ -101,59 +108,57 @@ impl<W: Write> Assembler<W> {
 
         Ok(())
     }
-
-    fn assemble_l_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
-        writeln!(self.output, "L_INSTRUCTION: {line}")?;
-
-        Ok(())
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::BufReader;
+    mod ssembler {
+        use std::io::BufReader;
 
-    use super::*;
+        use super::super::*;
 
-    #[test]
-    fn test_assemble_no_lables() {
-        let input = b"@2\nD=A\n@3\nD=D+A\n@0\nM=D";
-        let expected = "0000000000000010\n1110110000010000\n0000000000000011\n1110000010010000\n0000000000000000\n1110001100001000\n";
+        #[test]
+        fn test_assemble_no_lables() {
+            let input = b"@2\nD=A\n@3\nD=D+A\n@0\nM=D";
+            let expected = "0000000000000010\n1110110000010000\n0000000000000011\n1110000010010000\n0000000000000000\n1110001100001000\n";
 
-        let mut assembler = Assembler::new(Vec::new());
-        assembler.assemble(BufReader::new(&input[..])).unwrap();
-        let output = String::from_utf8(assembler.output).unwrap();
-        assert_eq!(output, expected);
-    }
+            let mut assembler = Assembler::new(Vec::new());
+            assembler.assemble(BufReader::new(&input[..])).unwrap();
+            let output = String::from_utf8(assembler.output).unwrap();
+            assert_eq!(output, expected);
+        }
 
-    #[test]
-    fn test_populate_labels() {
-        let input = b"(LOOP_1)\n(LOOP_2)\n";
-        let mut assembler = Assembler::new(Vec::new());
-        assembler
-            .populate_labels(BufReader::new(&input[..]))
-            .unwrap();
-        assert!(assembler.symbol_table.entries.contains_key("LOOP_1"));
-        assert!(assembler.symbol_table.entries.contains_key("LOOP_2"));
-    }
+        #[test]
+        fn test_populate_labels() {
+            let input = b"(LOOP_1)\n@2\n@myvar\n(LOOP_2)\n";
+            let mut assembler = Assembler::new(Vec::new());
+            assembler
+                .populate_labels(BufReader::new(&input[..]))
+                .unwrap();
+            assert!(assembler.symbol_table.entries.contains_key("LOOP_1"));
+            assert_eq!(assembler.symbol_table.entries["LOOP_1"], 0);
+            assert!(assembler.symbol_table.entries.contains_key("LOOP_2"));
+            assert_eq!(assembler.symbol_table.entries["LOOP_2"], 2);
+        }
 
-    #[test]
-    fn test_assembler_a_instruction_addr() {
-        let mut assembler = Assembler::new(Vec::new());
-        assembler
-            .assemble_a_instruction("@3")
-            .expect("Should assemble A instruction @3");
-        let output = String::from_utf8(assembler.output).unwrap();
-        assert_eq!(output, "0000000000000011\n");
-    }
+        #[test]
+        fn test_assemble_a_instruction_addr() {
+            let mut assembler = Assembler::new(Vec::new());
+            assembler
+                .assemble_a_instruction("@3")
+                .expect("Should assemble A instruction @3");
+            let output = String::from_utf8(assembler.output).unwrap();
+            assert_eq!(output, "0000000000000011\n");
+        }
 
-    #[test]
-    fn test_assembler_a_instruction_var() {
-        let mut assembler = Assembler::new(Vec::new());
-        assembler
-            .assemble_a_instruction("@myvar")
-            .expect("Should assemble A instruction @myvar");
-        let output = String::from_utf8(assembler.output).unwrap();
-        assert_eq!(output, "0000000000010000\n");
+        #[test]
+        fn test_assemble_a_instruction_var() {
+            let mut assembler = Assembler::new(Vec::new());
+            assembler
+                .assemble_a_instruction("@myvar")
+                .expect("Should assemble A instruction @myvar");
+            let output = String::from_utf8(assembler.output).unwrap();
+            assert_eq!(output, "0000000000010000\n");
+        }
     }
 }
