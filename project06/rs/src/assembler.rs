@@ -4,6 +4,8 @@ use std::{
     io::{self, BufRead, Write},
 };
 
+use crate::assembler::parser::symbol;
+
 pub mod cli_config;
 mod code_gen;
 mod parser;
@@ -53,8 +55,15 @@ impl<W: Write> Assembler<W> {
     }
 
     fn assemble_a_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
-        let symbol: u16 = parser::symbol(line)?.parse().unwrap();
-        let binary = format!("0{:015b}", symbol);
+        let symbol_str = parser::symbol(line)?;
+        let symbol_num: u32 = symbol_str.parse().unwrap_or_else(|_| {
+            if !self.symbol_table.contains(symbol_str) {
+                self.symbol_table.insert(symbol_str);
+            }
+            *self.symbol_table.get(symbol_str).unwrap()
+        });
+
+        let binary = format!("0{:015b}", symbol_num);
         writeln!(self.output, "{}", binary)?;
 
         Ok(())
@@ -91,5 +100,25 @@ mod tests {
         assembler.assemble(BufReader::new(&input[..])).unwrap();
         let output = String::from_utf8(assembler.output).unwrap();
         assert_eq!(output, expected);
+    }
+
+    #[test]
+    fn test_assembler_a_instruction_addr() {
+        let mut assembler = Assembler::new(Vec::new());
+        assembler
+            .assemble_a_instruction("@3")
+            .expect("Should assembled A instruction @3");
+        let output = String::from_utf8(assembler.output).unwrap();
+        assert_eq!(output, "0000000000000011\n");
+    }
+
+    #[test]
+    fn test_assembler_a_instruction_var() {
+        let mut assembler = Assembler::new(Vec::new());
+        assembler
+            .assemble_a_instruction("@myvar")
+            .expect("Should assembled A instruction @myvar");
+        let output = String::from_utf8(assembler.output).unwrap();
+        assert_eq!(output, "0000000000010000\n");
     }
 }
