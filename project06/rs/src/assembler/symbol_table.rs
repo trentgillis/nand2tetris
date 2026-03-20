@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 pub struct SymbolTable {
     curr_addr: u32,
-    entries: HashMap<String, u32>,
+    pub entries: HashMap<String, u32>,
 }
 
 impl SymbolTable {
