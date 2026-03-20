@@ -32,6 +32,10 @@ impl SymbolTable {
             self.curr_addr += 1;
         }
     }
+
+    pub fn contains(&mut self, symbol: &str) -> bool {
+        self.entries.contains_key(symbol)
+    }
 }
 
 #[cfg(test)]
@@ -39,6 +43,15 @@ mod tests {
     mod get {
         use super::super::*;
 
+        #[test]
+        fn test_get_exists() {
+            let mut table = SymbolTable::new();
+            table.entries.insert(String::from("myvar"), 999);
+
+            let entry = table.get("myvar");
+            assert!(entry.is_ok());
+            assert_eq!(entry.unwrap(), &999);
+        }
         #[test]
         fn test_get_no_exists() {
             let table = SymbolTable::new();
@@ -53,20 +66,29 @@ mod tests {
         fn test_insert_new() {
             let mut table = SymbolTable::new();
             table.insert("myvar");
-            let entry = table.get("myvar");
-
-            assert!(entry.is_ok());
-            assert_eq!(entry.unwrap(), &16)
+            assert_eq!(table.entries.get("myvar"), Some(&16));
         }
         #[test]
         fn test_insert_exists() {
             let mut table = SymbolTable::new();
             table.insert("myvar");
             table.insert("myvar");
+            assert_eq!(table.entries.get("myvar"), Some(&16));
+        }
+    }
+    mod contains {
+        use super::super::*;
 
-            let entry = table.get("myvar");
-            assert!(entry.is_ok());
-            assert_eq!(entry.unwrap(), &16)
+        #[test]
+        fn test_contains() {
+            let mut table = SymbolTable::new();
+            table.entries.insert(String::from("myvar"), 16);
+            assert!(table.contains("myvar"));
+        }
+        #[test]
+        fn test_does_not_contain() {
+            let mut table = SymbolTable::new();
+            assert!(!table.contains("myvar"));
         }
     }
 }
