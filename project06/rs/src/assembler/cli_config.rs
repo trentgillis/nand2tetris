@@ -3,12 +3,13 @@ pub struct CliConfig {
 }
 
 impl CliConfig {
-    pub fn build(args: &[String]) -> Result<CliConfig, &'static str> {
-        if args.len() < 2 {
-            return Err("not enough arguments");
-        }
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<CliConfig, &'static str> {
+        args.next();
 
-        let file_name = args[1].clone();
+        let file_name = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Path for .asm file to assemble was not passed."),
+        };
 
         Ok(CliConfig { file_name })
     }

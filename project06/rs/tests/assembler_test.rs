@@ -15,8 +15,8 @@ fn test_assembler() {
     ];
 
     for path in asm_paths {
-        let args: Vec<String> = vec![String::from(""), String::from(path)];
-        let config = assembler::cli_config::CliConfig::build(&args).unwrap();
+        let args = vec![String::from(""), String::from(path)];
+        let config = assembler::cli_config::CliConfig::build(args.into_iter()).unwrap();
         assembler::assemble(config).unwrap();
 
         let output_path = format!(
