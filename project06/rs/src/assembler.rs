@@ -90,7 +90,7 @@ impl<W: Write> Assembler<W> {
         let symbol_str = parser::symbol(line)?;
         let symbol_num: u32 = symbol_str
             .parse()
-            // If prase fails, symbol is a variable. Look it up in the symbol table
+            // If parse fails, symbol is a variable. Look it up in the symbol table
             .unwrap_or_else(|_| *self.symbol_table.get(symbol_str));
 
         let code = format!("0{:015b}", symbol_num);
