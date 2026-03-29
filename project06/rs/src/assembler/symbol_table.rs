@@ -37,16 +37,12 @@ impl SymbolTable {
         }
     }
 
-    pub fn get(&self, symbol: &str) -> Result<&u32, String> {
-        let table_entry = self.entries.get(symbol);
-        if table_entry.is_none() {
-            return Err(format!(
-                "Unable to retieve symbol from symbol table: {}",
-                symbol
-            ));
+    pub fn get(&mut self, symbol: &str) -> &u32 {
+        if !self.contains(symbol) {
+            self.insert(symbol);
         }
-
-        Ok(table_entry.unwrap())
+        let table_entry = self.entries.get(symbol);
+        table_entry.unwrap()
     }
 
     pub fn insert(&mut self, symbol: &str) {
@@ -73,14 +69,7 @@ mod tests {
             table.entries.insert(String::from("myvar"), 999);
 
             let entry = table.get("myvar");
-            assert!(entry.is_ok());
-            assert_eq!(entry.unwrap(), &999);
-        }
-        #[test]
-        fn test_get_no_exists() {
-            let table = SymbolTable::new();
-            let entry = table.get("myvar");
-            assert!(entry.is_err());
+            assert_eq!(entry, &999);
         }
     }
     mod insert {

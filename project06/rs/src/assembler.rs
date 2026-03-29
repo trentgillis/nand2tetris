@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fs,
-    io::{self, BufRead, Seek, Write},
+    io::{self, BufRead, Write},
 };
 
 use crate::assembler::parser::symbol;
@@ -12,13 +12,11 @@ mod parser;
 mod symbol_table;
 
 pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
-    let mut asm_file = fs::File::open(&cfg.file_name)?;
-    let hack_file = fs::File::create(cfg.file_name.replacen(".asm", ".hack", 1))?;
-    let mut assembler = Assembler::new(hack_file);
+    let asm_file = fs::File::open(&cfg.file_name)?;
+    let hack_file = fs::File::create(cfg.file_name.replace(".asm", ".hack"))?;
 
-    assembler.populate_labels(io::BufReader::new(&asm_file))?;
-    asm_file.seek(io::SeekFrom::Start(0))?;
-    assembler.assemble(io::BufReader::new(&asm_file))?;
+    let mut assembler = Assembler::new(hack_file);
+    assembler.assemble(asm_file)?;
 
     Ok(())
 }
@@ -36,10 +34,12 @@ impl<W: Write> Assembler<W> {
         }
     }
 
-    fn assemble<R>(&mut self, reader: R) -> Result<(), Box<dyn Error>>
+    fn assemble<R>(&mut self, f: R) -> Result<(), Box<dyn Error>>
     where
-        R: BufRead,
+        R: io::Read + io::Seek,
     {
+        let mut reader = io::BufReader::new(f);
+        self.populate_labels(&mut reader)?;
         for line in reader.lines() {
             let line = line?;
             let line = line.trim();
@@ -58,9 +58,9 @@ impl<W: Write> Assembler<W> {
         Ok(())
     }
 
-    fn populate_labels<R>(&mut self, reader: R) -> Result<(), Box<dyn Error>>
+    fn populate_labels<R>(&mut self, reader: &mut R) -> Result<(), Box<dyn Error>>
     where
-        R: BufRead,
+        R: io::BufRead + io::Seek,
     {
         let mut line_number = 0;
         for line in reader.lines() {
@@ -82,17 +82,16 @@ impl<W: Write> Assembler<W> {
             }
         }
 
+        reader.seek(io::SeekFrom::Start(0))?;
         Ok(())
     }
 
     fn assemble_a_instruction(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
         let symbol_str = parser::symbol(line)?;
-        let symbol_num: u32 = symbol_str.parse().unwrap_or_else(|_| {
-            if !self.symbol_table.contains(symbol_str) {
-                self.symbol_table.insert(symbol_str);
-            }
-            *self.symbol_table.get(symbol_str).unwrap()
-        });
+        let symbol_num: u32 = symbol_str
+            .parse()
+            // If prase fails, symbol is a variable. Look it up in the symbol table
+            .unwrap_or_else(|_| *self.symbol_table.get(symbol_str));
 
         let code = format!("0{:015b}", symbol_num);
         writeln!(self.output, "{}", code)?;
@@ -113,28 +112,24 @@ impl<W: Write> Assembler<W> {
 #[cfg(test)]
 mod tests {
     mod ssembler {
-        use std::io::BufReader;
-
         use super::super::*;
 
         #[test]
         fn test_assemble_no_lables() {
-            let input = b"@2\nD=A\n@3\nD=D+A\n@0\nM=D";
+            let input = io::Cursor::new(b"@2\nD=A\n@3\nD=D+A\n@0\nM=D");
             let expected = "0000000000000010\n1110110000010000\n0000000000000011\n1110000010010000\n0000000000000000\n1110001100001000\n";
 
             let mut assembler = Assembler::new(Vec::new());
-            assembler.assemble(BufReader::new(&input[..])).unwrap();
+            assembler.assemble(input).unwrap();
             let output = String::from_utf8(assembler.output).unwrap();
             assert_eq!(output, expected);
         }
 
         #[test]
         fn test_populate_labels() {
-            let input = b"(LOOP_1)\n@2\n@myvar\n(LOOP_2)\n";
+            let mut input = io::Cursor::new(b"(LOOP_1)\n@2\n@myvar\n(LOOP_2)\n");
             let mut assembler = Assembler::new(Vec::new());
-            assembler
-                .populate_labels(BufReader::new(&input[..]))
-                .unwrap();
+            assembler.populate_labels(&mut input).unwrap();
             assert!(assembler.symbol_table.entries.contains_key("LOOP_1"));
             assert_eq!(assembler.symbol_table.entries["LOOP_1"], 0);
             assert!(assembler.symbol_table.entries.contains_key("LOOP_2"));
