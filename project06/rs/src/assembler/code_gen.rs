@@ -51,7 +51,7 @@ pub fn dest(dest: Option<&str>) -> String {
     }
 
     let dest = dest.unwrap();
-    let mut dest_parts = Vec::from(["0", "0", "0"]);
+    let mut dest_parts = ["0", "0", "0"];
     if dest.contains("A") {
         dest_parts[0] = "1";
     }

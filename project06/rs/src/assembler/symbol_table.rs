@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 pub struct SymbolTable {
     curr_addr: u32,
-    pub entries: HashMap<String, u32>,
+    entries: HashMap<String, u32>,
 }
 
 impl SymbolTable {
@@ -53,7 +53,11 @@ impl SymbolTable {
         }
     }
 
-    pub fn contains(&mut self, symbol: &str) -> bool {
+    pub fn insert_label(&mut self, symbol: &str, addr: u32) {
+        self.entries.insert(String::from(symbol), addr);
+    }
+
+    pub fn contains(&self, symbol: &str) -> bool {
         self.entries.contains_key(symbol)
     }
 }
@@ -100,7 +104,7 @@ mod tests {
         }
         #[test]
         fn test_does_not_contain() {
-            let mut table = SymbolTable::new();
+            let table = SymbolTable::new();
             assert!(!table.contains("myvar"));
         }
     }

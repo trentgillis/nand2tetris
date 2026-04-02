@@ -1,3 +1,8 @@
+pub mod cli_config;
+mod code_gen;
+mod parser;
+mod symbol_table;
+
 use std::{
     error::Error,
     fs,
@@ -5,11 +10,6 @@ use std::{
 };
 
 use crate::assembler::parser::symbol;
-
-pub mod cli_config;
-mod code_gen;
-mod parser;
-mod symbol_table;
 
 pub fn assemble(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     let asm_file = fs::File::open(&cfg.file_name)?;
@@ -74,9 +74,7 @@ impl<W: Write> Assembler<W> {
             match parser::instruction_type(line) {
                 parser::InstructionType::L => {
                     let label = symbol(line)?;
-                    self.symbol_table
-                        .entries
-                        .insert(String::from(label), line_number);
+                    self.symbol_table.insert_label(label, line_number);
                 }
                 _ => line_number += 1,
             }
@@ -111,7 +109,7 @@ impl<W: Write> Assembler<W> {
 
 #[cfg(test)]
 mod tests {
-    mod ssembler {
+    mod assembler_test {
         use super::super::*;
 
         #[test]
@@ -130,10 +128,10 @@ mod tests {
             let mut input = io::Cursor::new(b"(LOOP_1)\n@2\n@myvar\n(LOOP_2)\n");
             let mut assembler = Assembler::new(Vec::new());
             assembler.populate_labels(&mut input).unwrap();
-            assert!(assembler.symbol_table.entries.contains_key("LOOP_1"));
-            assert_eq!(assembler.symbol_table.entries["LOOP_1"], 0);
-            assert!(assembler.symbol_table.entries.contains_key("LOOP_2"));
-            assert_eq!(assembler.symbol_table.entries["LOOP_2"], 2);
+            assert!(assembler.symbol_table.contains("LOOP_1"));
+            assert_eq!(assembler.symbol_table.get("LOOP_1"), &0);
+            assert_eq!(assembler.symbol_table.get("LOOP_2"), &2);
+            assert!(assembler.symbol_table.contains("LOOP_2"));
         }
 
         #[test]
