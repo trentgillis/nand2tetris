@@ -1,0 +1,1 @@
+/Users/trent/dev/projects/nand2tetris/project07/rs/target/release/libvm_translator.rlib: /Users/trent/dev/projects/nand2tetris/project07/rs/src/lib.rs /Users/trent/dev/projects/nand2tetris/project07/rs/src/vm_translator/cli_config.rs /Users/trent/dev/projects/nand2tetris/project07/rs/src/vm_translator.rs
