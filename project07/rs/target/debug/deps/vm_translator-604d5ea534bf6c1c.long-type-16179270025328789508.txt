@@ -1,0 +1,1 @@
+std::result::Result<vm_translator::cli_config::CliConfig, std::boxed::Box<(dyn std::error::Error + 'static)>>
