@@ -1,6 +1,7 @@
 use std::{
     error::Error,
     fs,
+    io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
 };
 
@@ -12,9 +13,11 @@ pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
         return Err("The supplied program path does not exist.".into());
     }
 
-    let vm_files = get_vm_files(&cfg.program_path);
-    for file in vm_files? {
-        translate_file(file)?;
+    let vm_file_paths = get_vm_files(&cfg.program_path);
+    let vm_translator = VmTranslator::new();
+    for path in vm_file_paths? {
+        let file = fs::File::open(path)?;
+        vm_translator.translate(file)?;
     }
 
     Ok(())
@@ -35,7 +38,31 @@ fn get_vm_files(program_path: &str) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     }
 }
 
-fn translate_file(path: PathBuf) -> Result<(), &'static str> {
-    println!("Path: {:?}", path);
-    Ok(())
+struct VmTranslator {}
+
+impl VmTranslator {
+    fn new() -> Self {
+        VmTranslator {}
+    }
+
+    fn translate<R>(&self, r: R) -> Result<(), Box<dyn Error>>
+    where
+        R: Read,
+    {
+        let reader = BufReader::new(r);
+        for line in reader.lines() {
+            let line = line?;
+
+            if line.is_empty() || line.starts_with("//") {
+                continue;
+            }
+
+            println!("{}", line)
+        }
+
+        Ok(())
+    }
 }
+
+#[cfg(test)]
+mod tests {}
