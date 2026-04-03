@@ -7,6 +7,8 @@ use std::{
 
 pub mod cli_config;
 
+mod parser;
+
 pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     let path = Path::new(&cfg.program_path);
     if !path.exists() {
