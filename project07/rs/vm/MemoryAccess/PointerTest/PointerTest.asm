@@ -1,134 +1,15 @@
-@3030
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@3
-D=A
-@0
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@3040
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@3
-D=A
-@1
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@32
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@2
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@46
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@6
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@3
-D=A
-@0
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@3
-D=A
-@1
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M+D
-@THIS
-D=M
-@2
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M-D
-@THAT
-D=M
-@6
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M+D
-(PointerTest.END_LOOP)
-@PointerTest.END_LOOP
-0;JEQ
+Push: push constant 3030
+Pop: pop pointer 0
+Push: push constant 3040
+Pop: pop pointer 1
+Push: push constant 32
+Pop: pop this 2
+Push: push constant 46
+Pop: pop that 6
+Push: push pointer 0
+Push: push pointer 1
+Arithmetic: add
+Push: push this 2
+Arithmetic: sub
+Push: push that 6
+Arithmetic: add

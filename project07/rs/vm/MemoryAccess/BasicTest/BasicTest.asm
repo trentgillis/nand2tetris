@@ -1,221 +1,25 @@
-@10
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@LCL
-D=M
-@0
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@21
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@22
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@ARG
-D=M
-@2
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@ARG
-D=M
-@1
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@36
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@6
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@42
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@45
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@5
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@THAT
-D=M
-@2
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@510
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@5
-D=A
-@6
-D=D+A
-@R15
-M=D
-@SP
-AM=M-1
-D=M
-@R15
-A=M
-M=D
-@LCL
-D=M
-@0
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@5
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M+D
-@ARG
-D=M
-@1
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M-D
-@THIS
-D=M
-@6
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@6
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M+D
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M-D
-@5
-D=A
-@6
-A=D+A
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP
-AM=M-1
-D=M
-A=A-1
-M=M+D
-(BasicTest.END_LOOP)
-@BasicTest.END_LOOP
-0;JEQ
+Push: push constant 10
+Pop: pop local 0
+Push: push constant 21
+Push: push constant 22
+Pop: pop argument 2
+Pop: pop argument 1
+Push: push constant 36
+Pop: pop this 6
+Push: push constant 42
+Push: push constant 45
+Pop: pop that 5
+Pop: pop that 2
+Push: push constant 510
+Pop: pop temp 6
+Push: push local 0
+Push: push that 5
+Arithmetic: add
+Push: push argument 1
+Arithmetic: sub
+Push: push this 6
+Push: push this 6
+Arithmetic: add
+Arithmetic: sub
+Push: push temp 6
+Arithmetic: add

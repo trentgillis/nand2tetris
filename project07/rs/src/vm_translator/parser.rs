@@ -4,7 +4,7 @@ const ARITHMETIC_COMMANDS: [&str; 3] = ["add", "sub", "neg"];
 const LOGICAL_COMMANDS: [&str; 6] = ["eq", "gt", "lt", "and", "or", "not"];
 
 #[derive(Debug, PartialEq)]
-enum CommandType {
+pub enum CommandType {
     Arithmetic,
     Push,
     Pop,
