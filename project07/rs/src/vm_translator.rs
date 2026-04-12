@@ -7,6 +7,7 @@ use std::{
 
 pub mod cli_config;
 
+mod code_writer;
 mod parser;
 
 pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
@@ -52,12 +53,13 @@ fn get_vm_files(program_path: &str) -> Result<Vec<PathBuf>, Box<dyn Error>> {
 }
 
 struct VmTranslator<W: Write> {
-    output: W,
+    code_writer: code_writer::CodeWriter<W>,
 }
 
 impl<W: Write> VmTranslator<W> {
     fn new(writer: W) -> Self {
-        VmTranslator { output: writer }
+        let code_writer = code_writer::CodeWriter::new(writer);
+        VmTranslator { code_writer }
     }
 
     fn translate<R>(&mut self, r: R) -> Result<(), Box<dyn Error>>
@@ -73,15 +75,45 @@ impl<W: Write> VmTranslator<W> {
             }
 
             match parser::command_type(&line)? {
-                parser::CommandType::Arithmetic => writeln!(self.output, "Arithmetic: {}", line)?,
-                parser::CommandType::Push => writeln!(self.output, "Push: {}", line)?,
-                parser::CommandType::Pop => writeln!(self.output, "Pop: {}", line)?,
+                parser::CommandType::Arithmetic => self.translate_push(&line)?,
+                parser::CommandType::Push => self.translate_push(&line)?,
+                parser::CommandType::Pop => self.translate_logical_arithemtic(&line)?,
             }
         }
 
         Ok(())
     }
+
+    fn translate_push(&self, line: &str) -> Result<(), Box<dyn Error>> {
+        // noop
+        Ok(())
+    }
+
+    fn translate_pop(&self, line: &str) -> Result<(), Box<dyn Error>> {
+        // noop
+        Ok(())
+    }
+
+    fn translate_logical_arithemtic(&self, line: &str) -> Result<(), Box<dyn Error>> {
+        // noop
+        Ok(())
+    }
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    mod vm_translator_test {
+        mod translate_test {
+            use super::super::super::*;
+
+            #[test]
+            fn test_translate_push() {}
+            #[test]
+            fn test_translate_pop() {}
+            #[test]
+            fn test_translate_arithemtic() {}
+            #[test]
+            fn test_translate_logical() {}
+        }
+    }
+}
