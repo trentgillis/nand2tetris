@@ -1,1 +1,0 @@
-std::result::Result<vm_translator::parser::CommandType, std::boxed::Box<dyn std::error::Error>>

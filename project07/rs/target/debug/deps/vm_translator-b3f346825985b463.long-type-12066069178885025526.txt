@@ -1,1 +1,0 @@
-std::result::Result<std::vec::Vec<std::path::PathBuf>, std::boxed::Box<dyn std::error::Error>>
