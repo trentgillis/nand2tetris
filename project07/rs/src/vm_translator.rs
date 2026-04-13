@@ -75,29 +75,18 @@ impl<W: Write> VmTranslator<W> {
             }
 
             match parser::command_type(&line)? {
-                parser::CommandType::Push => self.translate_push(&line)?,
-                parser::CommandType::Pop => self.translate_push(&line)?,
-                parser::CommandType::Arithmetic => self.translate_logical_arithemtic(&line)?,
+                parser::CommandType::Push => self
+                    .code_writer
+                    .write_push(parser::arg_1(&line), parser::arg_2(&line))?,
+                parser::CommandType::Pop => self.translate_pop(&line)?,
+                parser::CommandType::Arithmetic => self.code_writer.write_arithmetic(&line)?,
             }
         }
 
         Ok(())
     }
 
-    fn translate_push(&mut self, line: &str) -> Result<(), Box<dyn Error>> {
-        let segment = parser::arg_1(line);
-        let index = parser::arg_2(line);
-
-        self.code_writer.write_push(segment, index)?;
-        Ok(())
-    }
-
     fn translate_pop(&self, line: &str) -> Result<(), Box<dyn Error>> {
-        // noop
-        Ok(())
-    }
-
-    fn translate_logical_arithemtic(&self, line: &str) -> Result<(), Box<dyn Error>> {
         // noop
         Ok(())
     }

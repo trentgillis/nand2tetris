@@ -9,6 +9,20 @@ static SEGMENT_MAPPINGS: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
     ])
 });
 
+static OPERATOR_MAPPINGS: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
+    HashMap::from([
+        ("add", "+"),
+        ("sub", "-"),
+        ("and", "&"),
+        ("or", "|"),
+        ("neg", "-"),
+        ("not", "!"),
+        ("eq", "JEQ"),
+        ("lt", "JLT"),
+        ("gt", "JGT"),
+    ])
+});
+
 pub struct CodeWriter<W: Write> {
     output: W,
 }
@@ -28,6 +42,7 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "D=A")?;
             }
             "static" => {
+                // TODO: somename needs to be the program name
                 writeln!(self.output, "@somename.{index}")?;
                 writeln!(self.output, "D=M")?;
             }
@@ -51,6 +66,36 @@ impl<W: Write> CodeWriter<W> {
         }
 
         self.write_increment_sp()?;
+        Ok(())
+    }
+
+    pub fn write_arithmetic(&mut self, command: &str) -> Result<(), Box<dyn Error>> {
+        match command {
+            "add" | "sub" | "and" | "or" => {
+                let op = OPERATOR_MAPPINGS.get(command).copied().unwrap();
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "AM=M-1")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "A=A-1")?;
+                writeln!(self.output, "M=M{op}D")?;
+            }
+            "neg" | "not" => {
+                let op = OPERATOR_MAPPINGS.get(command).copied().unwrap();
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "A=M-1")?;
+                writeln!(self.output, "M={op}M")?;
+            }
+            "eq" | "gt" | "lt" => {
+                // TODO: handle logical commands
+                return Ok(());
+            }
+            _ => {
+                return Err(
+                    format!("Error writing arithmetic, unknown command: {}", command).into(),
+                );
+            }
+        }
+
         Ok(())
     }
 
