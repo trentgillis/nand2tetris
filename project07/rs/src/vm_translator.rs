@@ -30,7 +30,11 @@ pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     let vm_file_paths = get_vm_files(&cfg.program_path);
     let mut vm_translator = VmTranslator::new(
         output_file,
-        output_path.file_prefix().unwrap().to_str().unwrap(),
+        output_path
+            .file_prefix()
+            .ok_or("Unable to determine output file name")?
+            .to_str()
+            .ok_or("Output file name was not valid UTF-8")?,
     );
     for path in vm_file_paths? {
         let file = fs::File::open(path)?;
@@ -40,16 +44,15 @@ pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_vm_files(program_path: &str) -> Result<Vec<PathBuf>, Box<dyn Error>> {
-    let path = Path::new(program_path);
-    if path.is_dir() {
+fn get_vm_files(program_path: &PathBuf) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    if program_path.is_dir() {
         Ok(fs::read_dir(program_path)?
             .filter_map(|path| path.ok())
             .filter(|path| path.path().extension() == Some("vm".as_ref()))
             .map(|path| path.path())
             .collect())
-    } else if path.extension() == Some("vm".as_ref()) {
-        Ok(vec![path.to_path_buf()])
+    } else if program_path.extension() == Some("vm".as_ref()) {
+        Ok(vec![program_path.to_path_buf()])
     } else {
         Err("Path was not a .vm file or a directory containing at least one .vm file".into())
     }
@@ -89,23 +92,5 @@ impl<W: Write> VmTranslator<W> {
         }
 
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    mod vm_translator_test {
-        mod translate_test {
-            use super::super::super::*;
-
-            #[test]
-            fn test_translate_push() {}
-            #[test]
-            fn test_translate_pop() {}
-            #[test]
-            fn test_translate_arithemtic() {}
-            #[test]
-            fn test_translate_logical() {}
-        }
     }
 }

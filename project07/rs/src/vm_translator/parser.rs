@@ -50,7 +50,7 @@ fn is_arithmetic_logical(command: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    mod commmand_type_test {
+    mod command_type_test {
         use super::super::*;
 
         #[test]
@@ -97,12 +97,12 @@ mod tests {
         use super::super::*;
 
         #[test]
-        fn test_arg_2_push_pop() {
+        fn test_arg_1_logical_arithmetic() {
             let arg2 = arg_2("add");
             assert!(arg2.is_empty());
         }
         #[test]
-        fn test_arg_2_logical_arithmetic() {
+        fn test_arg_2_push_pop() {
             let mut arg2 = arg_2("push constant 0");
             assert_eq!(arg2, "0");
             arg2 = arg_2("pop local 3");

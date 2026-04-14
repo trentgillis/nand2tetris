@@ -1,16 +1,16 @@
-use std::{env, process};
+use std::{env, error::Error, process};
 
 use vm_translator::vm_translator;
 
 fn main() {
-    let cli_config =
-        vm_translator::cli_config::CliConfig::build(env::args()).unwrap_or_else(|err| {
-            eprint!("Error occurred parsing arugments: {}", err);
-            process::exit(0);
-        });
+    if let Err(err) = run() {
+        eprint!("{err}");
+        process::exit(1);
+    }
+}
 
-    vm_translator::translate(cli_config).unwrap_or_else(|err| {
-        eprint!("Error occurred translating vm files: {}", err);
-        process::exit(0);
-    });
+fn run() -> Result<(), Box<dyn Error>> {
+    let cfg = vm_translator::cli_config::CliConfig::build(env::args())?;
+    vm_translator::translate(cfg)?;
+    Ok(())
 }

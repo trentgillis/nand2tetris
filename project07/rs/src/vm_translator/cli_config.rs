@@ -1,5 +1,7 @@
+use std::path::PathBuf;
+
 pub struct CliConfig {
-    pub program_path: String,
+    pub program_path: PathBuf,
 }
 
 impl CliConfig {
@@ -7,7 +9,7 @@ impl CliConfig {
         args.next();
 
         let program_path = match args.next() {
-            Some(path) => path,
+            Some(path) => PathBuf::from(path),
             None => return Err("Program path for .vm file(s) to translate was not provided"),
         };
 

@@ -52,8 +52,8 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "D=M")?;
             }
             "temp" | "pointer" => {
-                let base_address = if segment.eq("pointer") { "3" } else { "5" };
-                writeln!(self.output, "@{base_address}")?; // address of the temp base segment
+                let base_address = if segment == "pointer" { "3" } else { "5" };
+                writeln!(self.output, "@{base_address}")?;
                 writeln!(self.output, "D=A")?;
                 writeln!(self.output, "@{index}")?;
                 writeln!(self.output, "A=D+A")?;
@@ -61,7 +61,7 @@ impl<W: Write> CodeWriter<W> {
             }
             "local" | "argument" | "this" | "that" => {
                 let segment_var = SEGMENT_MAPPINGS.get(segment).copied().unwrap();
-                writeln!(self.output, "@{segment_var}")?; // address of the temp base segment
+                writeln!(self.output, "@{segment_var}")?;
                 writeln!(self.output, "D=M")?;
                 writeln!(self.output, "@{index}")?;
                 writeln!(self.output, "A=D+A")?;
@@ -84,7 +84,7 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "M=D")?;
             }
             "pointer" | "temp" => {
-                let base_address = if segment.eq("pointer") { "3" } else { "5" };
+                let base_address = if segment == "pointer" { "3" } else { "5" };
                 writeln!(self.output, "@{base_address}")?;
                 writeln!(self.output, "D=A")?;
                 writeln!(self.output, "@{index}")?;
