@@ -25,6 +25,7 @@ static OPERATOR_MAPPINGS: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
 
 pub struct CodeWriter<W: Write> {
     output: W,
+    num_labels: u32,
 }
 
 impl<W: Write> CodeWriter<W> {
@@ -32,7 +33,10 @@ impl<W: Write> CodeWriter<W> {
     where
         W: Write,
     {
-        CodeWriter { output }
+        CodeWriter {
+            output,
+            num_labels: 0,
+        }
     }
 
     pub fn write_push(&mut self, segment: &str, index: &str) -> Result<(), Box<dyn Error>> {
@@ -86,8 +90,34 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "M={op}M")?;
             }
             "eq" | "gt" | "lt" => {
-                // TODO: handle logical commands
-                return Ok(());
+                self.num_labels += 1;
+                let jmp = OPERATOR_MAPPINGS.get(command).copied().unwrap();
+                // TODO: use the program name instead of todo
+                let label = format!("{}.{}.{}", "todo", command.to_uppercase(), self.num_labels);
+                let end_label = format!(
+                    "{}.{}_END.{}",
+                    "todo",
+                    command.to_uppercase(),
+                    self.num_labels
+                );
+
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "AM=M-1")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "A=A-1")?;
+                writeln!(self.output, "D=M-D")?;
+                writeln!(self.output, "@{label}")?;
+                writeln!(self.output, "D;{jmp}")?;
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "A=M-1")?;
+                writeln!(self.output, "M=0")?;
+                writeln!(self.output, "@{end_label}")?;
+                writeln!(self.output, "0;JEQ")?;
+                writeln!(self.output, "({label})")?;
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "A=M-1")?;
+                writeln!(self.output, "M=-1")?;
+                writeln!(self.output, "({end_label})")?;
             }
             _ => {
                 return Err(
