@@ -25,10 +25,10 @@ pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     } else {
         path.with_extension("asm")
     };
-    let output_file = fs::File::create(output_path)?;
+    let output_file = fs::File::create(&output_path)?;
 
     let vm_file_paths = get_vm_files(&cfg.program_path);
-    let mut vm_translator = VmTranslator::new(output_file);
+    let mut vm_translator = VmTranslator::new(output_file, output_path.to_str().unwrap());
     for path in vm_file_paths? {
         let file = fs::File::open(path)?;
         vm_translator.translate(file)?;
@@ -57,8 +57,8 @@ struct VmTranslator<W: Write> {
 }
 
 impl<W: Write> VmTranslator<W> {
-    fn new(writer: W) -> Self {
-        let code_writer = code_writer::CodeWriter::new(writer);
+    fn new(writer: W, program_name: impl Into<String>) -> Self {
+        let code_writer = code_writer::CodeWriter::new(writer, program_name);
         VmTranslator { code_writer }
     }
 

@@ -25,16 +25,18 @@ static OPERATOR_MAPPINGS: LazyLock<HashMap<&str, &str>> = LazyLock::new(|| {
 
 pub struct CodeWriter<W: Write> {
     output: W,
+    program_name: String,
     num_labels: u32,
 }
 
 impl<W: Write> CodeWriter<W> {
-    pub fn new(output: W) -> Self
+    pub fn new(output: W, program_name: impl Into<String>) -> Self
     where
         W: Write,
     {
         CodeWriter {
             output,
+            program_name: program_name.into(),
             num_labels: 0,
         }
     }
@@ -46,8 +48,7 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "D=A")?;
             }
             "static" => {
-                // TODO: somename needs to be the program name
-                writeln!(self.output, "@somename.{index}")?;
+                writeln!(self.output, "@{}.{index}", self.program_name)?;
                 writeln!(self.output, "D=M")?;
             }
             "temp" | "pointer" => {
@@ -92,11 +93,15 @@ impl<W: Write> CodeWriter<W> {
             "eq" | "gt" | "lt" => {
                 self.num_labels += 1;
                 let jmp = OPERATOR_MAPPINGS.get(command).copied().unwrap();
-                // TODO: use the program name instead of todo
-                let label = format!("{}.{}.{}", "todo", command.to_uppercase(), self.num_labels);
+                let label = format!(
+                    "{}.{}.{}",
+                    self.program_name,
+                    command.to_uppercase(),
+                    self.num_labels
+                );
                 let end_label = format!(
                     "{}.{}_END.{}",
-                    "todo",
+                    self.program_name,
                     command.to_uppercase(),
                     self.num_labels
                 );
