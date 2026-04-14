@@ -28,7 +28,10 @@ pub fn translate(cfg: cli_config::CliConfig) -> Result<(), Box<dyn Error>> {
     let output_file = fs::File::create(&output_path)?;
 
     let vm_file_paths = get_vm_files(&cfg.program_path);
-    let mut vm_translator = VmTranslator::new(output_file, output_path.to_str().unwrap());
+    let mut vm_translator = VmTranslator::new(
+        output_file,
+        output_path.file_prefix().unwrap().to_str().unwrap(),
+    );
     for path in vm_file_paths? {
         let file = fs::File::open(path)?;
         vm_translator.translate(file)?;
@@ -78,16 +81,13 @@ impl<W: Write> VmTranslator<W> {
                 parser::CommandType::Push => self
                     .code_writer
                     .write_push(parser::arg_1(&line), parser::arg_2(&line))?,
-                parser::CommandType::Pop => self.translate_pop(&line)?,
+                parser::CommandType::Pop => self
+                    .code_writer
+                    .write_pop(parser::arg_1(&line), parser::arg_2(&line))?,
                 parser::CommandType::Arithmetic => self.code_writer.write_arithmetic(&line)?,
             }
         }
 
-        Ok(())
-    }
-
-    fn translate_pop(&self, line: &str) -> Result<(), Box<dyn Error>> {
-        // noop
         Ok(())
     }
 }

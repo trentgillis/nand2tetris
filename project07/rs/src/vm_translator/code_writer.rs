@@ -60,7 +60,7 @@ impl<W: Write> CodeWriter<W> {
                 writeln!(self.output, "D=M")?;
             }
             "local" | "argument" | "this" | "that" => {
-                let segment_var = SEGMENT_MAPPINGS.get(segment).copied().unwrap_or("");
+                let segment_var = SEGMENT_MAPPINGS.get(segment).copied().unwrap();
                 writeln!(self.output, "@{segment_var}")?; // address of the temp base segment
                 writeln!(self.output, "D=M")?;
                 writeln!(self.output, "@{index}")?;
@@ -71,6 +71,50 @@ impl<W: Write> CodeWriter<W> {
         }
 
         self.write_increment_sp()?;
+        Ok(())
+    }
+
+    pub fn write_pop(&mut self, segment: &str, index: &str) -> Result<(), Box<dyn Error>> {
+        match segment {
+            "static" => {
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "AM=M-1")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "@{}.{index}", self.program_name)?;
+                writeln!(self.output, "M=D")?;
+            }
+            "pointer" | "temp" => {
+                let base_address = if segment.eq("pointer") { "3" } else { "5" };
+                writeln!(self.output, "@{base_address}")?;
+                writeln!(self.output, "D=A")?;
+                writeln!(self.output, "@{index}")?;
+                writeln!(self.output, "D=D+A")?;
+                writeln!(self.output, "@R15")?;
+                writeln!(self.output, "M=D")?;
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "AM=M-1")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "@R15")?;
+                writeln!(self.output, "A=M")?;
+                writeln!(self.output, "M=D")?;
+            }
+            "local" | "argument" | "this" | "that" => {
+                let segment_var = SEGMENT_MAPPINGS.get(segment).copied().unwrap();
+                writeln!(self.output, "@{segment_var}")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "@{index}")?;
+                writeln!(self.output, "D=D+A")?;
+                writeln!(self.output, "@R15")?;
+                writeln!(self.output, "M=D")?;
+                writeln!(self.output, "@SP")?;
+                writeln!(self.output, "AM=M-1")?;
+                writeln!(self.output, "D=M")?;
+                writeln!(self.output, "@R15")?;
+                writeln!(self.output, "A=M")?;
+                writeln!(self.output, "M=D")?;
+            }
+            _ => return Err(format!("Error writing pop, unknown segment: {}", segment).into()),
+        }
         Ok(())
     }
 
