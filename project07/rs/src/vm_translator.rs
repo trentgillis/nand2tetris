@@ -80,14 +80,14 @@ impl<W: Write> VmTranslator<W> {
                 continue;
             }
 
-            match parser::command_type(&line)? {
-                parser::CommandType::Push => self
-                    .code_writer
-                    .write_push(parser::arg_1(&line), parser::arg_2(&line))?,
-                parser::CommandType::Pop => self
-                    .code_writer
-                    .write_pop(parser::arg_1(&line), parser::arg_2(&line))?,
-                parser::CommandType::Arithmetic => self.code_writer.write_arithmetic(&line)?,
+            match parser::parse(&line)? {
+                parser::Command::Push { segment, index } => {
+                    self.code_writer.write_push(segment, index)?
+                }
+                parser::Command::Pop { segment, index } => {
+                    self.code_writer.write_pop(segment, index)?
+                }
+                parser::Command::Arithmetic(cmd) => self.code_writer.write_arithmetic(cmd)?,
             }
         }
 
